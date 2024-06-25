@@ -68,16 +68,18 @@ WITH temp_table as (
 
 SELECT customer_id, customer_fname, customer_lname, customer_order_count
 FROM customers JOIN temp_table ON customers.customer_id = temp_table.order_customer_id
+ORDER BY customer_order_count DESC, customer_id ASC
 
 -- Exercise 2
 
 SELECT DISTINCT order_customer_id FROM orders
 
-SELECT customer_id, customer_fname, customer_lname, order_customer_id
+SELECT customer_id, customer_fname, customer_lname--, order_customer_id
 FROM (SELECT customer_id, customer_fname, customer_lname FROM customers) AS T
 	LEFT OUTER JOIN 
 	(SELECT DISTINCT order_customer_id FROM orders) as R ON T.customer_id = R.order_customer_id
 WHERE R.order_customer_id IS NULL
+ORDER BY customer_id ASC
 
 
 SELECT count(DISTINCT order_customer_id) FROM orders
