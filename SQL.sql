@@ -144,3 +144,164 @@ FROM departments LEFT JOIN (
 		ON c.category_id = p.product_category_id
 	GROUP BY /*c.category_id,*/ c.category_department_id) AS R
 	ON department_id = R.category_department_id
+
+
+
+--_________________________________E04_________________________________
+
+USE retail_db;
+
+SELECT MAX(department_id) FROM departments;
+SELECT MAX(category_id) FROM categories;
+SELECT MAX(product_id) FROM products;
+SELECT MAX(customer_id) FROM customers;
+SELECT MAX(order_id) FROM orders;
+SELECT MAX(order_item_id) FROM order_items;
+
+
+
+/*
+CREATE SEQUENCE departments_Id_Seq
+    START WITH 7
+    INCREMENT BY 1;
+*/
+
+SELECT order_customer_id, customer_id
+FROM orders LEFT JOIN customers
+		ON order_customer_id = customer_id
+
+SELECT COUNT(1) from orders
+
+SELECT order_items.order_item_order_id, orders.order_id
+FROM order_items LEFT JOIN orders
+		ON order_item_order_id = order_id
+
+SELECT COUNT(1) from order_items
+
+SELECT order_items.order_item_product_id, products.product_id
+FROM order_items LEFT JOIN products
+		ON order_item_product_id = product_id
+
+SELECT COUNT(1) from order_items
+
+-- this has NULL values
+SELECT products.product_category_id, categories.category_id
+FROM products LEFT JOIN categories
+		ON products.product_category_id = categories.category_id
+
+SELECT * FROM products
+
+/*BEGIN TRANSACTION foreign_key_violation;
+
+	UPDATE products
+	SET products.product_category_id = categories.category_id
+	FROM products LEFT JOIN categories
+			ON products.product_category_id = categories.category_id
+	WHERE categories.category_id IS NULL
+	
+*/
+
+
+
+
+-- this also has NULL values
+SELECT categories.category_department_id, departments.department_id
+FROM categories LEFT JOIN departments
+		ON categories.category_department_id = departments.department_id
+
+
+
+--__________________________________E06___________________________________________
+
+-- Ex 1
+
+SELECT YEAR(created_ts) [created_year], COUNT(user_id) [user_count]
+FROM users
+GROUP BY YEAR(created_ts)
+ORDER BY created_year ASC;
+
+
+-- Ex 2
+SELECT user_id, user_dob, user_email_id, DATENAME(dw, user_dob) user_day_of_birth 
+FROM users
+WHERE Month(user_dob) = 5
+ORDER BY DAY(user_dob)
+
+
+-- EX 3
+SELECT user_id, CONCAT(user_first_name, ' ', user_last_name) [user_name], user_email_id, created_ts, YEAR(created_ts) created_year
+FROM users
+WHERE YEAR(created_ts) = 2019
+ORDER BY [user_name]
+
+
+-- EX 4
+SELECT CASE
+        WHEN user_gender = 'F' THEN 'Female'
+        WHEN user_gender = 'M' THEN 'Male'
+        WHEN user_gender = 'N' THEN 'Non-Binary'
+        WHEN user_gender IS NULL THEN 'NOT Specified'
+    END AS user_gender,
+    COUNT(*) AS user_count
+FROM users
+GROUP BY 
+    CASE
+        WHEN user_gender = 'F' THEN 'Female'
+        WHEN user_gender = 'M' THEN 'Male'
+        WHEN user_gender = 'N' THEN 'Non-Binary'
+        WHEN user_gender IS NULL THEN 'NOT Specified'
+    END
+ORDER BY 
+    user_count DESC;
+
+
+-- EX 5 
+
+SELECT user_id, user_unique_id, IIF(LEN(REPLACE(user_unique_id, '-', '')) >= 9, 
+									RIGHT(REPLACE(user_unique_id, '-', ''), 4),
+									IIF(user_unique_id IS NULL, 'Not Specified', 'Invalid Unique Id')) [user_unique_id_last4]
+FROM users
+ORDER BY user_id
+
+
+-- EX 6 
+WITH T AS(
+	SELECT user_id, CASE 
+				WHEN CHARINDEX('+', user_phone_no) = 1 
+					THEN CAST(SUBSTRING(user_phone_no, 2, CHARINDEX(' ', user_phone_no) - 1) AS INTEGER)
+			END AS country_code
+	FROM users
+)
+SELECT country_code, COUNT(user_id) user_count
+FROM T
+WHERE country_code IS NOT NULL
+GROUP BY (country_code)
+ORDER BY country_code;
+
+
+-- Ex 7
+USE retail_db;
+
+SELECT COUNT(1) [count]
+FROM order_items
+WHERE ROUND(order_item_subtotal, 2) != ROUND(order_item_quantity * order_item_product_price, 2);
+
+
+-- EX 8
+WITH T AS(
+	SELECT DATENAME(dw, order_date) week_day, CASE
+        WHEN DATENAME(dw, order_date) = 'Monday' THEN 'Week days'
+        WHEN DATENAME(dw, order_date) = 'Tuesday' THEN 'Week days'
+        WHEN DATENAME(dw, order_date) = 'Wednesday' THEN 'Week days'
+		WHEN DATENAME(dw, order_date) = 'Thursday' THEN 'Week days'
+        WHEN DATENAME(dw, order_date) = 'Friday' THEN 'Week days'
+        WHEN DATENAME(dw, order_date) = 'Saturday' THEN 'Weekend days'
+		WHEN DATENAME(dw, order_date) = 'Sunday' THEN 'Weekend days'
+    END AS day_type
+	FROM orders
+	WHERE YEAR(order_date) = 2014 AND MONTH(order_date) = 1
+)
+
+SELECT day_type, Count(day_type)
+FROM T
+GROUP BY day_type
