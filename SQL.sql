@@ -305,3 +305,106 @@ WITH T AS(
 SELECT day_type, Count(day_type)
 FROM T
 GROUP BY day_type
+
+
+
+
+
+
+
+
+
+--__________________________________E08________________________________________
+
+USE hr_db;
+
+-- Exercise 1
+With T AS (
+	SELECT
+		employee_id,
+		department_id,
+		salary,
+		CAST(AVG(salary) OVER (PARTITION BY department_id) as DECIMAL(18,2)) AS avg_dept_salary
+	FROM employees
+)
+
+SELECT T.department_id, employee_id, department_name, salary, ROUND(avg_dept_salary, 2) avg_salary_expense
+FROM T JOIN departments ON T.department_id = departments.department_id
+WHERE salary > avg_dept_salary
+ORDER BY T.department_id ASC, salary DESC;
+
+
+-- Execrcise 2
+SELECT
+	employee_id,
+	department_name,
+	salary,
+	CAST(SUM(salary) OVER (
+		PARTITION BY employees.department_id
+			ORDER BY department_name ASC, salary ASC
+			ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+		) AS DECIMAL(18,2)) AS cum_salary_expense
+FROM employees JOIN departments 
+	ON employees.department_id = departments.department_id
+WHERE department_name IN ('FINANCE', 'IT')
+ORDER BY department_name ASC, salary ASC
+
+
+-- Exercise 3
+WITH T AS(
+SELECT employee_id, e.department_id, department_name, salary,
+	DENSE_RANK() OVER(
+		PARTITION BY e.department_id
+		ORDER BY salary DESC
+	)[employee_rank]
+FROM employees e JOIN departments d
+	ON e.department_id = d.department_id
+)
+
+SELECT * FROM T WHERE employee_rank < 4
+ORDER BY department_id ASC, salary DESC;
+
+-- Exercise 4
+
+USE retail_db;
+
+WITH T as (
+	SELECT order_id, order_item_product_id, order_item_subtotal,
+		CAST(SUM(order_item_subtotal) OVER(PARTITION BY order_item_product_id) AS DECIMAL(18,2)) as Revenue
+	FROM orders o JOIN order_items on order_id = order_item_order_id
+	WHERE order_status IN ('COMPLETE', 'CLOSED')
+		AND YEAR(order_date) = 2014 AND MONTH(order_date) = 1
+),
+
+R AS(
+SELECT DISTINCT order_item_product_id as product_id, product_name, Revenue,
+	DENSE_RANK() OVER (/*PARTITION BY order_item_product_id*/ -- NO NEED TO PARTITION
+					ORDER BY Revenue DESC) [RANK]
+FROM T JOIN products ON order_item_product_id = product_id
+)
+
+SELECT * FROM R
+WHERE RANK<4;
+
+
+-- Exercise 5
+WITH T as (
+	SELECT order_id, order_item_product_id, order_item_subtotal,
+		CAST(SUM(order_item_subtotal) OVER(PARTITION BY order_item_product_id) AS DECIMAL(18,2)) as Revenue
+	FROM orders o JOIN order_items on order_id = order_item_order_id
+	WHERE order_status IN ('COMPLETE', 'CLOSED')
+		AND YEAR(order_date) = 2014 AND MONTH(order_date) = 1
+),
+
+R AS(
+SELECT DISTINCT product_category_id,order_item_product_id as product_id, product_name, Revenue,
+	DENSE_RANK() OVER (PARTITION BY product_category_id 
+					ORDER BY Revenue DESC) [RANK]
+FROM T JOIN products ON order_item_product_id = product_id
+)
+
+SELECT product_category_id, category_name ,product_id as product_id, product_name, Revenue, RANK
+FROM R JOIN categories ON product_category_id = category_id
+WHERE category_name IN ('Cardio Equipment', 'Strength Training')
+	AND RANK<4
+ORDER BY category_id ASC, Revenue DESC; 
