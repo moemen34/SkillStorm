@@ -308,6 +308,32 @@ GROUP BY day_type
 
 
 
+--____________________________________________E07________________________________________________________
+
+
+-- EX 1
+WITH T AS (
+	SELECT product_category_id, count(1) as product_count
+	FROM products
+	GROUP by product_category_id
+)
+SELECT category_name 
+FROM T JOIN categories on product_category_id = category_id 
+WHERE product_count > 5
+ORDER BY product_category_id 
+
+
+-- EX 2
+
+SELECT *
+FROM orders
+WHERE order_customer_id IN (
+    SELECT order_customer_id
+    FROM orders
+    GROUP BY order_customer_id
+    HAVING COUNT(order_id) > 10
+);
+
 
 
 
