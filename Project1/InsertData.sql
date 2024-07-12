@@ -38,19 +38,19 @@ INSERT INTO Orders (DATE, Symbol, Buy_Sell, Price, Number_of_Shares, Profit_Targ
 
 
 INSERT INTO Take_profit (Symbol, [Target], Hit, Number_of_Shares)
-	VALUES('QQQ', 349.25, 0, 11),
-			('QQQ', 456.70, 0, 16),
+	VALUES('QQQ', 349.25, 1, 11),
+			('QQQ', 456.70, 1, 16),
 
-			('SPY', 499.68, 0, 7),
+			('SPY', 499.68, 1, 7),
 			('SPY', 653.43, 0, 11),
 			
-			('AGI', 13.31, 0, 308),
+			('AGI', 13.31, 1, 308),
 			('AGI', 17.41, 0, 462),
 
-			('MARA', 4.65, 0, 838),
-			('MARA', 6.09, 0, 1257),
+			('MARA', 4.65, 1, 838),
+			('MARA', 6.09, 1, 1257),
 					
-			('REGN', 938.42, 0, 4),
+			('REGN', 938.42, 1, 4),
 			('REGN', 1227.16, 0, 6);
 
 
