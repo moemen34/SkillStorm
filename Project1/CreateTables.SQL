@@ -72,7 +72,13 @@ CREATE TABLE Orders (
     Market_Index NVARCHAR(10), 
     FOREIGN KEY (Symbol) REFERENCES Investment(Symbol),
     FOREIGN KEY (Profit_Target) REFERENCES Take_Profit(Target_ID),
-    FOREIGN KEY (Symbol, [Date]) REFERENCES Monthly_Data(Symbol, [Date]),
+    --FOREIGN KEY (Symbol, [Date]) REFERENCES Monthly_Data(Symbol, [Date]),
     --FOREIGN KEY (Market_Index, [Date]) REFERENCES Index_Monthly(Symbol, [Date])
 );
 GO
+
+CREATE TABLE Eco_indicators (
+    date DATE PRIMARY KEY,
+    unemployment FLOAT,
+    interest_rate FLOAT
+);
